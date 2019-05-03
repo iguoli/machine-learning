@@ -20,7 +20,6 @@ grad = zeros(size(theta));
 tt = theta(2:end); % tail of theta
 J = (-1/m)*(y'*log(sigmoid(X*theta)) + (1-y)'*log(1-sigmoid(X*theta))) + (lambda/(2*m))*(tt'*tt);
 
-X0 = X(:, 1);
 XT = X(:, 2:end); % tail of X
 delta = sigmoid(X*theta) - y;
 
