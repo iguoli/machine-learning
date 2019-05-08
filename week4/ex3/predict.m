@@ -22,11 +22,9 @@ p = zeros(size(X, 1), 1);
 %
 
 X = [ones(m, 1), X];
-
 Z2 = Theta1 * X';
-A2 = [ones(1, size(Z2, 2)); sigmoid(Z2)];
-Z3 = Theta2 * A2;
-A3 = sigmoid(Z3);
+A2 = [ones(1, m); sigmoid(Z2)];
+A3 = sigmoid(Theta2 * A2);
 
 [prob p] = max(A3);
 
