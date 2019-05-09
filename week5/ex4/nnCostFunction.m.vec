@@ -1,3 +1,4 @@
+% vi: ft=matlab
 function [J grad] = nnCostFunction(nn_params, ...
                                    input_layer_size, ...
                                    hidden_layer_size, ...
@@ -62,46 +63,31 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-for i = 1:m
-    E = eye(num_labels);
-    v = E(:, y(i));
+% feedforward
+X = [ones(m, 1) X];
+Z2 = Theta1 * X';  % hidden_layer_size * m
+A2 = [ones(1, m); sigmoid(Z2)];
+Z3 = Theta2 * A2;  % num_labels * m
+A3 = sigmoid(Z3);
 
-    a1 = [1; X(i, :)'];     % (input_layer_size + 1) x 1
-    z2 = Theta1 * a1;       % hidden_layer_size x 1
-    a2 = [1; sigmoid(z2)];  % (hidden_layer_size + 1) x 1
-    z3 = Theta2 * a2;       % num_labels x 1
-    a3 = sigmoid(z3);       % num_labels x 1
-
-    J = J - v'*log(a3) - (1-v')*log(1-a3);
-
-    % backpropagation
-    d3 = a3 - v;
-    d2 = Theta2'(2:end, :) * d3 .* sigmoidGradient(z2);
-
-    % compute gradient of all thetas
-    Theta2_grad = Theta2_grad + (d3 * a2');
-    Theta1_grad = Theta1_grad + (d2 * a1');
-
-%{
-    fprintf('J = %d x %d \n', size(J));
-    fprintf('a1 = %d x %d \n', size(a1));
-    fprintf('a2 = %d x %d \n', size(a2));
-    fprintf('a3 = %d x %d \n', size(a3));
-    fprintf('d2 = %d x %d \n', size(d2));
-    fprintf('d3 = %d x %d \n', size(d3));
-    fprintf('Theta1_grad = %d x %d \n', size(Theta1_grad));
-    fprintf('Theta2_grad = %d x %d \n', size(Theta2_grad));
-    % pause(10);
-%}
+% backpropagation
+% expand y to mx10
+Y = zeros(num_labels, m);
+for i = 1:num_labels
+    Y(i, :) = y==i;
 end
 
-J = J ./ m + (lambda/(2*m))*(sum(Theta1(:, 2:end)(:) .^ 2) + sum(Theta2(:, 2:end)(:) .^ 2));
-T1 = Theta1;
-T1(:, 1) = 0;
-T2 = Theta2;
-T2(:, 1) = 0;
-Theta1_grad = Theta1_grad ./ m + ((lambda/m) .* T1);
-Theta2_grad = Theta2_grad ./ m + ((lambda/m) .* T2);
+J = (-1/m)*trace(Y'*log(A3) + (1-Y')*log(1-A3));
+
+D3 = A3 - Y;               % num_labels * m
+D2 = Theta2'(2:end, :) * D3 .* Z2;    % (hidden_layer_size + 1) * m
+
+% get the gradient of all thetas
+for i = 1:m
+    Theta2_grad = Theta2_grad + D3(:, i) * A2(:, i)';
+    Theta1_grad = Theta1_grad + D2(:, i) * X(i, :);
+end
+
 
 % -------------------------------------------------------------
 
